@@ -73,9 +73,12 @@ func main() {
 	// Keep a reference to the underlying Convex catalog before caching
 	// wraps it — the Telegram bot needs the generic Convex call surface
 	// (users, share links, broadcasts) that only the Convex catalog exposes.
-	var botConvex bot.ConvexStore
+	// When SQLite is the catalog, use the SQLite-backed bot store instead.
+	var botStore bot.ConvexStore
 	if cv, ok := catalog.(bot.ConvexStore); ok {
-		botConvex = cv
+		botStore = cv
+	} else if sc := video.UnwrapSQLite(catalog); sc != nil {
+		botStore = bot.NewSQLiteStore(sc.DB())
 	}
 	catalog = video.NewCachedCatalog(catalog, responseCache, time.Duration(cfg.CacheTTLSeconds*2)*time.Second, 5*time.Second)
 	defer catalog.Close()
@@ -106,8 +109,8 @@ func main() {
 		// Only the Convex catalog exposes the generic Convex call surface the
 		// bot needs (users, share links, videos). Fall back gracefully when
 		// a non-Convex catalog is in use.
-		if botConvex != nil {
-			b := bot.New(cfg, botConvex)
+		if botStore != nil {
+			b := bot.New(cfg, botStore)
 			go func() {
 				if err := b.Run(ctx); err != nil {
 					log.Printf("WARNING: telegram bot stopped (%v); the API remains available without the bot", err)
