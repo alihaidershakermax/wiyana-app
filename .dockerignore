@@ -1,0 +1,31 @@
+# ── Python ──────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+htmlcov/
+
+# ── Node ─────────────────────────────────────────
+frontend/node_modules/
+frontend/.vite/
+frontend/.cache/
+frontend/dist/
+
+# ── Git / IDE ────────────────────────────────────
+.git/
+.gitignore
+.gitattributes
+.vscode/
+.idea/
+.DS_Store
+
+# ── Docs / CI ────────────────────────────────────
+*.md
+!requirements.txt
+!backend/requirements.txt
+.crab/

@@ -1,0 +1,60 @@
+name: wiyana-api
+services:
+  - name: wiyana-api
+    type: web
+    dockerfile: ./Dockerfile
+    build:
+      context: .
+    ports:
+      - 8000
+    env:
+      - name: PORT
+        value: "8000"
+      - name: ENVIRONMENT
+        value: "production"
+      - name: STORE_BACKEND
+        value: "redis"
+      - name: CACHE_ENABLED
+        value: "true"
+      - name: CACHE_PREFIX
+        value: "wiyana:cache:"
+      - name: CACHE_TTL_SECONDS
+        value: "30"
+      - name: CACHE_MAX_ENTRIES
+        value: "4096"
+      - name: REDIS_POOL_SIZE
+        value: "32"
+      - name: DB_MAX_OPEN_CONNS
+        value: "25"
+      - name: DB_MAX_IDLE_CONNS
+        value: "10"
+      - name: DB_CONN_MAX_LIFETIME_SECONDS
+        value: "1800"
+      - name: HTTP_RATE_LIMIT_PER_MINUTE
+        value: "120"
+      - name: FFMPEG_BINARY
+        value: "ffmpeg"
+      - name: FFMPEG_WATERMARK_ENABLED
+        value: "true"
+      - name: HLS_OUTPUT_DIR
+        value: "/app/hls_cache"
+      - name: UPLOAD_DIR
+        value: "/app/uploads"
+      - name: DATABASE_URL
+        value: ""
+      - name: SUPABASE_POOLER_HOST
+        value: ""
+
+      - name: REDIS_URL
+        value: ""
+      # If JWT_SECRET is empty, the server generates a random secret at boot.
+      # That lets the service start, but every restart invalidates all sessions.
+      # Set JWT_SECRET in the Koyeb dashboard (Environment tab) to keep sessions stable.
+      - name: JWT_SECRET
+        value: ""
+      - name: TELEGRAM_BOT_TOKEN
+        value: ""
+      - name: OWNER_TELEGRAM_ID
+        value: ""
+      - name: CORS_ORIGINS
+        value: "https://wena-app.onrender.com"

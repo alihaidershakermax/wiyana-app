@@ -1,0 +1,499 @@
+@import "tailwindcss";
+
+/* Class-based dark mode: `dark:` utilities activate when `.dark` is on <html> */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── Typography tokens ────────────────────────────────────────────── */
+@theme {
+  --font-sans:    "IBM Plex Sans Arabic", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-display: "IBM Plex Sans Arabic", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono:    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* ── WEYANA WHITE + ORANGE BRAND DESIGN SYSTEM ───────────────────────── */
+:root {
+  --radius: 1rem;
+  --motion-snap: cubic-bezier(0.23, 1, 0.32, 1);
+  --page-gutter: clamp(1rem, 3vw, 2rem);
+  --surface-elevated: #FFFFFF;
+  --shadow-soft: 0 12px 34px rgba(17, 17, 17, 0.07);
+  --focus-ring: 0 0 0 4px rgba(249, 115, 22, 0.16);
+
+  /* Light Theme (White + Orange) */
+  --background:                 #FFFFFF;
+  --surface:                    #FFFFFF;
+  --surface-secondary:          #F8F8F8;
+  --card:                       #FFFFFF;
+  --card-foreground:            #111111;
+
+  /* Border & Input */
+  --border:                     #E5E7EB;
+  --border-subtle:              #F3F4F6;
+  --input:                      #FFFFFF;
+  --input-border:               #E5E7EB;
+
+  /* Text Colors */
+  --foreground:                 #111111;
+  --text-secondary:             #6B7280;
+  --text-muted:                 #9CA3AF;
+
+  /* Primary Brand: WEYANA Orange */
+  --primary:                    #F97316;
+  --primary-hover:              #EA580C;
+  --primary-light:              #FFF7ED;
+  --primary-foreground:         #FFFFFF;
+
+  /* Ring & Focus */
+  --ring:                       #F97316;
+
+  /* Semantic status colors (strictly for functional feedback) */
+  --destructive:                #EF4444;
+  --destructive-foreground:     #FFFFFF;
+  --success:                    #10B981;
+  --warning:                    #F59E0B;
+
+  /* Legacy mappings */
+  --color-bg:      var(--background);
+  --color-surface: var(--surface);
+  --color-border:  var(--border);
+  --color-text:    var(--foreground);
+  --color-text-2:  var(--text-secondary);
+}
+
+.dark {
+  /* Dark Theme (Near Black + Orange Only) */
+  --background:                 #0F0F0F;
+  --surface:                    #181818;
+  --surface-secondary:          #222222;
+  --card:                       #181818;
+  --card-foreground:            #FFFFFF;
+  --surface-elevated:           #202020;
+  --shadow-soft:                0 16px 40px rgba(0, 0, 0, 0.28);
+
+  /* Border & Input */
+  --border:                     #27272A;
+  --border-subtle:              #1F1F1F;
+  --input:                      #181818;
+  --input-border:               #27272A;
+
+  /* Text Colors */
+  --foreground:                 #FFFFFF;
+  --text-secondary:             #A1A1AA;
+  --text-muted:                 #71717A;
+
+  /* Primary Brand: WEYANA Orange */
+  --primary:                    #F97316;
+  --primary-hover:              #EA580C;
+  --primary-light:              rgba(249, 115, 22, 0.15);
+  --primary-foreground:         #FFFFFF;
+
+  /* Ring & Focus */
+  --ring:                       #F97316;
+}
+
+/* ── Base Reset & iOS Smoothness ─────────────────────────────────── */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    font-family: var(--font-sans);
+    direction: rtl;
+  }
+
+  body {
+    background-color: var(--background);
+    background-image: radial-gradient(circle at 8% 0%, rgba(249, 115, 22, 0.045), transparent 24rem);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  /* While the video player's fallback fullscreen overlay is active,
+     hide every app header/nav so only the player is visible (YouTube style),
+     and lock background scrolling so nothing can peek behind the player. */
+  body.wiyana-player-fullscreen {
+    overflow: hidden;
+  }
+  body.wiyana-player-fullscreen header,
+  body.wiyana-player-fullscreen nav {
+    display: none !important;
+  }
+
+  ::selection {
+    background-color: #F97316;
+    color: #FFFFFF;
+  }
+
+  :focus-visible {
+    outline: 2px solid #F97316;
+    outline-offset: 2px;
+  }
+
+  /* Custom Smooth Scrollbar */
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #E5E7EB;
+    border-radius: 9999px;
+  }
+  .dark ::-webkit-scrollbar-thumb {
+    background: #27272A;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #F97316;
+  }
+}
+
+/* ── iOS UI Components & Buttons ──────────────────────────────────── */
+@layer components {
+  /* iOS Card */
+  .ios-card {
+    background-color: var(--card);
+    min-width: 0;
+    border: 1px solid var(--border);
+    border-radius: 1.25rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+    transition: transform 0.18s var(--motion-snap), border-color 0.18s ease, box-shadow 0.18s ease;
+  }
+  .ios-card:hover {
+    box-shadow: var(--shadow-soft);
+    border-color: rgba(249, 115, 22, 0.4);
+  }
+
+  /* Primary Button (#F97316) */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    padding: 0.625rem 1.25rem;
+    background-color: #F97316;
+    color: #FFFFFF;
+    font-weight: 700;
+    font-size: 0.875rem;
+    border-radius: 0.875rem;
+    box-shadow: 0 2px 8px rgba(249, 115, 22, 0.2);
+    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: pointer;
+    border: none;
+    user-select: none;
+  }
+  .btn-primary:hover:not(:disabled) {
+    background-color: #EA580C;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(249, 115, 22, 0.3);
+  }
+  .btn-primary:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  /* Secondary Button */
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    padding: 0.625rem 1.25rem;
+    background-color: var(--surface);
+    color: #F97316;
+    font-weight: 700;
+    font-size: 0.875rem;
+    border-radius: 0.875rem;
+    border: 1.5px solid #F97316;
+    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: pointer;
+    user-select: none;
+  }
+  .btn-secondary:hover:not(:disabled) {
+    background-color: var(--primary-light);
+  }
+  .btn-secondary:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  /* Ghost Button */
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: transparent;
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-radius: 0.75rem;
+    transition: all 0.15s ease-in-out;
+    cursor: pointer;
+    border: none;
+  }
+  .btn-ghost:hover {
+    background-color: var(--surface-secondary);
+    color: var(--foreground);
+  }
+
+  /* Inputs & Form Controls */
+  .ios-input {
+    background-color: var(--input);
+    border: 1px solid var(--input-border);
+    color: var(--foreground);
+    padding: 0.625rem 1rem;
+    border-radius: 0.875rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .ios-input::placeholder {
+    color: var(--text-muted);
+  }
+  .ios-input:focus {
+    outline: none;
+    border-color: #F97316;
+    box-shadow: var(--focus-ring);
+  }
+
+  .surface-elevated {
+    background: var(--surface-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: 1.25rem;
+    box-shadow: var(--shadow-soft);
+  }
+
+  .page-gutter {
+    padding-inline: var(--page-gutter);
+  }
+
+  .section-heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 1rem;
+    min-width: 0;
+  }
+
+  .section-heading > * {
+    min-width: 0;
+  }
+
+  .state-panel {
+    display: grid;
+    place-items: center;
+    gap: 0.65rem;
+    min-height: 10rem;
+    padding: 1.5rem;
+    text-align: center;
+    color: var(--text-secondary);
+    background: color-mix(in srgb, var(--surface-secondary) 80%, transparent);
+    border: 1px dashed var(--border);
+    border-radius: 1.25rem;
+  }
+
+  .tap-target {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
+
+  .skeleton-shimmer {
+    position: relative;
+    overflow: hidden;
+    background: var(--surface-secondary);
+  }
+
+  .skeleton-shimmer::after {
+    position: absolute;
+    inset: 0;
+    content: "";
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.42), transparent);
+    transform: translateX(-100%);
+    animation: skeletonSweep 1.4s var(--motion-snap) infinite;
+  }
+
+  /* General .input class for admin panel */
+  .input {
+    background-color: var(--input);
+    border: 1px solid var(--input-border);
+    color: var(--foreground);
+    padding: 0.625rem 1rem;
+    border-radius: 0.875rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    width: 100%;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .input:focus {
+    outline: none;
+    border-color: #F97316;
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+  }
+  .input::placeholder {
+    color: var(--text-muted);
+  }
+}
+
+/* ── Select Dropdown Styling ────────────────────────────────────── */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: left 0.75rem center;
+  padding-left: 2.25rem !important;
+}
+.dark select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2371717A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+select:focus {
+  outline: none;
+  border-color: #F97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+}
+
+/* ── Animation Utilities ──────────────────────────────────────────── */
+@layer utilities {
+  .animate-fade-in {
+    animation: iosFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @keyframes iosFadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0);   }
+  }
+
+  .animate-scale-in {
+    animation: iosScaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @keyframes iosScaleIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to   { opacity: 1; transform: scale(1);    }
+  }
+
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+
+/* ── iOS Glass Liquid Surface System ───────────────────────────────── */
+@layer components {
+  .glass-liquid {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    background:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.035) 46%, rgba(249, 115, 22, 0.08)),
+      color-mix(in srgb, var(--surface) 76%, transparent);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow:
+      0 18px 55px rgba(0, 0, 0, 0.22),
+      inset 0 1px 0 rgba(255, 255, 255, 0.12),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.035);
+    -webkit-backdrop-filter: blur(24px) saturate(145%);
+    backdrop-filter: blur(24px) saturate(145%);
+  }
+
+  .glass-liquid::after {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background:
+      radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.16), transparent 32%),
+      radial-gradient(circle at 88% 100%, rgba(249, 115, 22, 0.1), transparent 34%);
+    content: "";
+    pointer-events: none;
+  }
+
+  .glass-liquid-strong {
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.055)),
+      rgba(20, 20, 20, 0.72);
+    border-color: rgba(255, 255, 255, 0.16);
+    -webkit-backdrop-filter: blur(30px) saturate(160%);
+    backdrop-filter: blur(30px) saturate(160%);
+  }
+
+  .glass-liquid-nav {
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.018));
+    border-color: rgba(255, 255, 255, 0.1);
+    -webkit-backdrop-filter: blur(22px) saturate(140%);
+    backdrop-filter: blur(22px) saturate(140%);
+  }
+
+  .glass-liquid-input {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.14);
+    -webkit-backdrop-filter: blur(14px) saturate(130%);
+    backdrop-filter: blur(14px) saturate(130%);
+  }
+
+  .glass-liquid-input:focus {
+    background: rgba(249, 115, 22, 0.08);
+    border-color: rgba(249, 115, 22, 0.68);
+    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.14), 0 12px 30px rgba(249, 115, 22, 0.08);
+  }
+
+  .admin-glass-shell {
+    background:
+      radial-gradient(circle at 8% 0%, rgba(249, 115, 22, 0.1), transparent 25rem),
+      radial-gradient(circle at 92% 96%, rgba(249, 115, 22, 0.065), transparent 28rem),
+      #080808;
+  }
+}
+
+@keyframes skeletonSweep {
+  to { transform: translateX(100%); }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass-liquid,
+  .glass-liquid-strong,
+  .glass-liquid-nav,
+  .glass-liquid-input {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: var(--surface-elevated);
+    box-shadow: var(--shadow-soft);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .page-enter-active,
+  .page-leave-active {
+    transition: none;
+  }
+}

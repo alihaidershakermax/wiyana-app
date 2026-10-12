@@ -1,0 +1,8 @@
+hls_cache/
+
+# If the server binary is ever generated in the repo root,
+# ignore it. The rule targets the root only (/server), so it
+# must never shadow the cmd/server package or any file named
+# "server" elsewhere.
+/server
+.server.lock

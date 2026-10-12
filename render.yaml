@@ -1,0 +1,68 @@
+services:
+  - type: web
+    name: wiyana
+    runtime: docker
+    plan: starter
+    healthCheckPath: /api/health
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: ENVIRONMENT
+        value: production
+      - key: STORE_BACKEND
+        value: redis
+      - key: CACHE_ENABLED
+        value: true
+      - key: CACHE_PREFIX
+        value: "wiyana:cache:"
+      - key: CACHE_TTL_SECONDS
+        value: 30
+      - key: CACHE_MAX_ENTRIES
+        value: 4096
+      - key: REDIS_POOL_SIZE
+        value: 32
+      - key: DB_MAX_OPEN_CONNS
+        value: 25
+      - key: DB_MAX_IDLE_CONNS
+        value: 10
+      - key: DB_CONN_MAX_LIFETIME_SECONDS
+        value: 1800
+      - key: HTTP_RATE_LIMIT_PER_MINUTE
+        value: 120
+      - key: FFMPEG_BINARY
+        value: ffmpeg
+      - key: FFMPEG_WATERMARK_ENABLED
+        value: true
+      - key: HLS_OUTPUT_DIR
+        value: /app/hls_cache
+      - key: UPLOAD_DIR
+        value: /app/uploads
+      - key: CORS_ORIGINS
+        value: "https://wena-app.onrender.com"
+      - key: DATABASE_URL
+        sync: false
+      # SQLite is the default database (data/wiyana.db). Set SQLITE_PATH to
+      # change the file location; leave DATABASE_URL empty to stay on SQLite.
+      - key: SQLITE_PATH
+        value: "data/wiyana.db"
+      - key: SUPABASE_POOLER_HOST
+        value: ""
+
+      - key: REDIS_URL
+        sync: false
+      # IMPORTANT: Render's blueprints cannot auto-generate secret values (generateValue
+      # is not supported by the API). Set JWT_SECRET manually in the Render dashboard
+      # (Environment tab) once, or the server will generate a random secret at every
+      # boot, which invalidates all sessions on each restart.
+      - key: JWT_SECRET
+        value: "change-me-to-a-long-random-string"
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: OWNER_TELEGRAM_ID
+        sync: false
+      - key: IMGBB_API_KEY
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
