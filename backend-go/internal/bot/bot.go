@@ -14,6 +14,8 @@ import (
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+
+	"github.com/alihaidershakermax/wena-app-platfrom/backend-go/internal/auth"
 )
 
 // ── Texts (Arabic) ──────────────────────────────────────────────
@@ -242,7 +244,7 @@ func (b *Bot) handleStart(ctx context.Context, msg *tgbotapi.Message, args strin
 			tgbotapi.NewInlineKeyboardButtonData("👨‍💻 عن المطور", "about"),
 		},
 	}
-	b.sendTextWithWebApp(msg.Chat.ID, welcomeText, extra)
+	b.sendTextWithWebApp(msg.Chat.ID, msg.From.ID, welcomeText, extra)
 }
 
 func (b *Bot) handleShareDeepLink(ctx context.Context, msg *tgbotapi.Message, hash string) {
@@ -448,7 +450,7 @@ func (b *Bot) cbMain(ctx context.Context, q *tgbotapi.CallbackQuery) {
 			tgbotapi.NewInlineKeyboardButtonData("👨‍💻 عن المطور", "about"),
 		},
 	}
-	b.sendTextWithWebApp(q.Message.Chat.ID, welcomeText, extra)
+	b.sendTextWithWebApp(q.Message.Chat.ID, q.From.ID, welcomeText, extra)
 	if q.Message.MessageID != 0 {
 		_, _ = b.api.Send(tgbotapi.NewDeleteMessage(q.Message.Chat.ID, q.Message.MessageID))
 	}
@@ -856,9 +858,15 @@ func (b *Bot) sendHTML(chatID int64, text string, keyboard *tgbotapi.InlineKeybo
 // sendTextWithWebApp sends a message whose first row's first button opens the
 // Wiyana Mini App inside Telegram (web_app button type). Other buttons are
 // copied from the provided standard keyboard rows.
-func (b *Bot) sendTextWithWebApp(id int64, text string, extraRows [][]tgbotapi.InlineKeyboardButton) {
+// userID is used to generate a one-time auth token as fallback when initData is unavailable.
+func (b *Bot) sendTextWithWebApp(id int64, userID int64, text string, extraRows [][]tgbotapi.InlineKeyboardButton) {
 	var rows [][]tgInlineButton
 	webAppURL := strings.TrimRight(b.cfg.WebAppURL, "/") + "/"
+	// Append one-time auth token as fallback (valid 10min, single-use)
+	if userID != 0 {
+		token := auth.CreateOneTimeToken(userID)
+		webAppURL += "?auth=" + token
+	}
 	rows = append(rows, []tgInlineButton{{Text: "🚀 فتح منصة ويانا", WebApp: &tgWebAppInfo{URL: webAppURL}}})
 	for _, r := range extraRows {
 		row := make([]tgInlineButton, len(r))
