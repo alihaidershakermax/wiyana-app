@@ -87,6 +87,58 @@ func (s *server) loginTelegram(w http.ResponseWriter, r *http.Request) {
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"access_token": token, "refresh_token": refresh, "token_type": "bearer", "user": identity})
 }
+
+// loginViaToken handles one-time token auth (fallback when initData unavailable).
+func (s *server) loginViaToken(w http.ResponseWriter, r *http.Request) {
+	var body struct {
+		Token string `json:"token"`
+	}
+	if !readJSON(w, r, &body) {
+		return
+	}
+	telegramID, ok := auth.ConsumeOneTimeToken(body.Token)
+	if !ok {
+		writeError(w, http.StatusUnauthorized, "رمز الدخول غير صالح أو منتهي")
+		return
+	}
+	// Build identity (same as Telegram login)
+	identity := auth.Identity{
+		ID:         strconv.FormatInt(telegramID, 10),
+		TelegramID: strconv.FormatInt(telegramID, 10),
+		Role:       "student",
+	}
+	// Owner check
+	for _, adminID := range s.cfg.BotAdminIDs {
+		if adminID == telegramID {
+			identity.Role = "owner"
+			break
+		}
+	}
+	// Get user name from DB if exists
+	if s.adb != nil {
+		if u, uerr := s.adb.UpsertByTelegram(telegramID, "", "", "", "", identity.Role); uerr == nil && u != nil {
+			identity.ID = u.ID
+			identity.Name = strings.TrimSpace(u.FirstName + " " + u.LastName)
+			if identity.Name == "" {
+				identity.Name = u.Username
+			}
+			if strings.ToLower(u.Role) == "owner" || strings.ToLower(u.Role) == "admin" {
+				identity.Role = strings.ToLower(u.Role)
+			}
+		}
+	}
+	token, err := auth.SignJWT(identity, s.cfg.JWTSecret, 30*24*time.Hour)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "تعذر إصدار جلسة الدخول")
+		return
+	}
+	refresh, err := auth.SignJWT(identity, s.cfg.JWTSecret, 60*24*time.Hour)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "تعذر إصدار جلسة الدخول")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"access_token": token, "refresh_token": refresh, "token_type": "bearer", "user": identity})
+}
 func (s *server) identity(w http.ResponseWriter, r *http.Request) (auth.Identity, int) {
 	identity, err := auth.Resolve(r, auth.Config{JWTSecret: s.cfg.JWTSecret, BotToken: s.cfg.BotToken, Environment: s.cfg.Environment})
 	if err == nil {
