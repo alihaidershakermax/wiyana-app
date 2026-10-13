@@ -18,7 +18,16 @@ func (s *server) loginTelegram(w http.ResponseWriter, r *http.Request) {
 	}
 	identity, err := auth.VerifyTelegramInitData(body.InitData, s.cfg.BotToken, s.cfg.Environment)
 	if err != nil {
-		writeError(w, http.StatusUnauthorized, "بيانات Telegram غير صالحة")
+		// TEMP DEBUG: detailed reason for diagnosis
+		reason := "unknown"
+		if body.InitData == "" {
+			reason = "empty_init_data"
+		} else if len(body.InitData) < 40 {
+			reason = "init_data_too_short"
+		} else {
+			reason = "signature_or_expired"
+		}
+		writeError(w, http.StatusUnauthorized, "بيانات Telegram غير صالحة [debug:"+reason+"]")
 		return
 	}
 	// Owners listed in BOT_ADMIN_IDS sign in with the owner role so the
