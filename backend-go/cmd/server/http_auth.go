@@ -4,10 +4,33 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/alihaidershakermax/wena-app-platfrom/backend-go/internal/auth"
 )
+
+// TEMP DEBUG: ring buffer of recent login attempts (metadata only, no secrets)
+var loginDebugLog = struct {
+	sync.Mutex
+	entries []map[string]any
+}{}
+
+func logLoginAttempt(initDataLen int, hasHash bool, reason, userAgent string) {
+	loginDebugLog.Lock()
+	defer loginDebugLog.Unlock()
+	entry := map[string]any{
+		"time":          time.Now().UTC().Format("15:04:05"),
+		"init_data_len": initDataLen,
+		"has_hash":      hasHash,
+		"reason":        reason,
+		"user_agent":    userAgent[:min(80, len(userAgent))],
+	}
+	loginDebugLog.entries = append(loginDebugLog.entries, entry)
+	if len(loginDebugLog.entries) > 20 {
+		loginDebugLog.entries = loginDebugLog.entries[1:]
+	}
+}
 
 func (s *server) loginTelegram(w http.ResponseWriter, r *http.Request) {
 	var body struct {
@@ -20,6 +43,7 @@ func (s *server) loginTelegram(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// TEMP DEBUG: detailed reason for diagnosis
 		reason := "unknown"
+		hasHash := strings.Contains(body.InitData, "hash=")
 		if body.InitData == "" {
 			reason = "empty_init_data"
 		} else if len(body.InitData) < 40 {
@@ -27,6 +51,7 @@ func (s *server) loginTelegram(w http.ResponseWriter, r *http.Request) {
 		} else {
 			reason = "signature_or_expired"
 		}
+		logLoginAttempt(len(body.InitData), hasHash, reason, r.Header.Get("User-Agent"))
 		writeError(w, http.StatusUnauthorized, "بيانات Telegram غير صالحة [debug:"+reason+"]")
 		return
 	}
