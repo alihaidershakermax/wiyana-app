@@ -21,6 +21,15 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		s.loginTelegram(w, r)
 		return
 	}
+	// TEMP DEBUG: view recent login attempt metadata
+	if r.URL.Path == "/api/v1/auth/debug-log" && r.Method == http.MethodGet {
+		loginDebugLog.Lock()
+		entries := make([]map[string]any, len(loginDebugLog.entries))
+		copy(entries, loginDebugLog.entries)
+		loginDebugLog.Unlock()
+		writeJSON(w, http.StatusOK, map[string]any{"entries": entries})
+		return
+	}
 	if strings.HasPrefix(r.URL.Path, "/api/v1/auth/") && s.authCompatRoute(w, r) {
 		return
 	}
