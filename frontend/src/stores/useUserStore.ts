@@ -78,7 +78,15 @@ export const useUserStore = defineStore("user", () => {
         tg.ready();
         tg.expand();
 
-        const tgInitData = tg.initData || "";
+        // Poll for initData (Telegram may inject it asynchronously, up to 8s)
+        let tgInitData = tg.initData || "";
+        if (!tgInitData) {
+          const deadline = Date.now() + 8000;
+          while (!tgInitData && Date.now() < deadline) {
+            await new Promise((r) => setTimeout(r, 500));
+            tgInitData = tg.initData || "";
+          }
+        }
         if (tgInitData) {
           const authRes = await loginWithTelegram(tgInitData);
           if (authRes?.access_token) {
