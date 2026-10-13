@@ -21,6 +21,10 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		s.loginTelegram(w, r)
 		return
 	}
+	if r.URL.Path == "/api/v1/auth/token-login" && r.Method == http.MethodPost {
+		s.loginViaToken(w, r)
+		return
+	}
 	// TEMP DEBUG: view recent login attempt metadata
 	if r.URL.Path == "/api/v1/auth/debug-log" && r.Method == http.MethodGet {
 		loginDebugLog.Lock()
