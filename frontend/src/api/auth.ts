@@ -21,3 +21,15 @@ export async function loginWithTelegram(initData: string): Promise<AuthResponse>
 
   return response.data;
 }
+
+export async function loginWithToken(token: string): Promise<AuthResponse> {
+  const response = await apiClient.post<AuthResponse>("/auth/token-login", {
+    token,
+  });
+
+  if (response.data?.access_token) {
+    setAuthToken(response.data.access_token);
+  }
+
+  return response.data;
+}
