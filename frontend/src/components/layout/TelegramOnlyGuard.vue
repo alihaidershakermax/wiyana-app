@@ -37,6 +37,15 @@ onMounted(() => {
   // (set only in real Telegram WebViews), or a genuine platform value.
   const SESSION_KEY = "wiyana_tg_env";
 
+  // Bypass: direct login links (?jwt= or ?auth=) prove the user came from
+  // the bot — no need for Telegram WebApp context.
+  const bypassParams = new URLSearchParams(window.location.search);
+  if (bypassParams.get("jwt") || bypassParams.get("auth") || bypassParams.get("dev") === "true") {
+    isTelegramEnv.value = true;
+    sessionStorage.setItem(SESSION_KEY, "1");
+    return;
+  }
+
   // Persist the result across in-app navigations so the guard never
   // flickers between screens (was causing "opens briefly then blocks").
   const stored = sessionStorage.getItem(SESSION_KEY);
