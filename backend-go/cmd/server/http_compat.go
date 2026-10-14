@@ -131,17 +131,40 @@ func (s *server) compatRoute(w http.ResponseWriter, r *http.Request) bool {
 	if !strings.HasPrefix(r.URL.Path, "/api/v1/") {
 		return false
 	}
+	path := strings.TrimPrefix(r.URL.Path, "/api/v1/")
+
+	// Public endpoints (no auth required — subscriptions removed, all content free)
+	if r.Method == http.MethodGet {
+		switch {
+		case path == "home/dashboard":
+			courses, _, _ := s.adb.ListCourses(db.CourseFilter{Status: "published", Limit: 10})
+			latest := make([]any, 0)
+			for _, c := range courses {
+				latest = append(latest, map[string]any{
+					"id": c.ID, "title": c.Title, "description": c.Description,
+					"thumbnail_url": c.ThumbnailURL, "subject_name": c.SubjectName,
+					"lessons_count": c.LessonsCount, "created_at": c.CreatedAt,
+				})
+			}
+			writeJSON(w, http.StatusOK, map[string]any{"user": nil, "announcement": nil, "continueLearningCourses": []any{}, "recommendedCourses": latest, "latestCourses": latest, "popularCourses": latest})
+			return true
+		case path == "subjects/" || path == "subjects":
+			subjects, _, _ := s.adb.ListSubjects(db.SubjectFilter{Limit: 50})
+			writeJSON(w, http.StatusOK, map[string]any{"success": true, "data": subjects})
+			return true
+		}
+	}
+
 	identity, status := s.identity(w, r)
 	if status != 0 {
 		return true
 	}
-	path := strings.TrimPrefix(r.URL.Path, "/api/v1/")
 	if r.Method == http.MethodGet {
 		switch {
 		case path == "students/" || path == "students":
 			writeJSON(w, http.StatusOK, studentListResponse(r))
 			return true
-		case path == "teachers/" || path == "teachers", path == "subjects/" || path == "subjects":
+		case path == "teachers/" || path == "teachers":
 			writeJSON(w, http.StatusOK, []any{})
 			return true
 		case path == "audit-logs/" || path == "audit-logs", path == "notifications/" || path == "notifications":
@@ -170,19 +193,6 @@ func (s *server) compatRoute(w http.ResponseWriter, r *http.Request) bool {
 			return true
 		case path == "users/" || path == "users":
 			writeJSON(w, http.StatusOK, map[string]any{"success": true, "data": []any{}})
-			return true
-		case path == "home/dashboard":
-			// Return real latest published courses
-			courses, _, _ := s.adb.ListCourses(db.CourseFilter{Status: "published", Limit: 10})
-			latest := make([]any, 0)
-			for _, c := range courses {
-				latest = append(latest, map[string]any{
-					"id": c.ID, "title": c.Title, "description": c.Description,
-					"thumbnail_url": c.ThumbnailURL, "subject_name": c.SubjectName,
-					"lessons_count": c.LessonsCount, "created_at": c.CreatedAt,
-				})
-			}
-			writeJSON(w, http.StatusOK, map[string]any{"user": homeUser(identity), "announcement": nil, "continueLearningCourses": []any{}, "recommendedCourses": latest, "latestCourses": latest, "popularCourses": latest})
 			return true
 		case path == "courses/" || path == "courses":
 			writeJSON(w, http.StatusOK, []any{})
