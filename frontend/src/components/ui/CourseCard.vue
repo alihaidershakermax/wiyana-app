@@ -26,7 +26,8 @@ const formattedDuration = computed(() => {
 <template>
   <div
     @click="emit('click'); emit('action', course.id)"
-    class="group flex flex-col bg-white dark:bg-[#181818] border border-[#E5E7EB] dark:border-[#27272A] rounded-xl overflow-hidden hover:border-orange-500/50 dark:hover:border-orange-500/50 transition-all duration-300 hover:shadow-md hover:shadow-orange-500/5 focus-within:ring-2 focus-within:ring-orange-500/30 cursor-pointer"
+    data-glass="card"
+    class="glass-card group flex flex-col rounded-xl overflow-hidden hover:border-orange-500/50 transition-all duration-300 cursor-pointer"
   >
     <!-- Cover Image Container -->
     <div class="relative w-full aspect-[16/9] bg-[#F8F8F8] dark:bg-[#222222] overflow-hidden">
