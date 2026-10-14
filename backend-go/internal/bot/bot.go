@@ -87,6 +87,7 @@ type Config struct {
 	OwnerID     int64
 	AdminIDs    []int64 // extra admin telegram ids
 	PollTimeout int     // seconds, default 60
+	JWTSecret   string  // for signing direct-login JWTs in web_app URLs
 }
 
 // Bot is the Telegram bot controller.
@@ -866,6 +867,26 @@ func (b *Bot) sendTextWithWebApp(id int64, userID int64, text string, extraRows 
 	if userID != 0 {
 		token := auth.CreateOneTimeToken(userID)
 		webAppURL += "?auth=" + token
+		// Also embed a direct JWT as fallback (no backend exchange needed)
+		if b.cfg.JWTSecret != "" {
+			identity := auth.Identity{
+				ID:         strconv.FormatInt(userID, 10),
+				TelegramID: strconv.FormatInt(userID, 10),
+				Role:       "student",
+			}
+			for _, adminID := range b.cfg.AdminIDs {
+				if adminID == userID {
+					identity.Role = "owner"
+					break
+				}
+			}
+			if userID == b.cfg.OwnerID {
+				identity.Role = "owner"
+			}
+			if jwt, jerr := auth.SignJWT(identity, b.cfg.JWTSecret, 30*24*time.Hour); jerr == nil {
+				webAppURL += "&jwt=" + jwt
+			}
+		}
 	}
 	rows = append(rows, []tgInlineButton{{Text: "🚀 فتح منصة ويانا", WebApp: &tgWebAppInfo{URL: webAppURL}}})
 	for _, r := range extraRows {
