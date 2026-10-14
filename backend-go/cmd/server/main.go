@@ -105,6 +105,7 @@ func main() {
 			Token:     cfg.BotToken,
 			WebAppURL: cfg.WebAppURL,
 			OwnerID:   config.BotOwnerID(),
+			JWTSecret: cfg.JWTSecret,
 		}
 		// Only the Convex catalog exposes the generic Convex call surface the
 		// bot needs (users, share links, videos). Fall back gracefully when
