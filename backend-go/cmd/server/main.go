@@ -65,6 +65,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	initDashKeys() // Load DASH encryption keys from DASH_KEYS env
 	data := createStore(cfg)
 	defer data.Close()
 	responseCache := createCache(cfg)
