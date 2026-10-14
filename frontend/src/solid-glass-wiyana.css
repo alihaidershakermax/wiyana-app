@@ -1,0 +1,94 @@
+/*
+ * Solid Glass for Wiyana — adapted from deeplethe/solid-glass
+ * Material, physical, tactile. Thicker panes, top highlight + hairline + layered shadows.
+ * Dark is the material as designed.
+ */
+
+/* ── Glass material utilities ────────────────────────────────────── */
+
+.glass-panel {
+  background: oklch(1 0 0 / 4.5%);
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  border: 1px solid oklch(1 0 0 / 8%);
+  border-radius: var(--radius, 1rem);
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 12%),
+    0 8px 24px oklch(0 0 0 / 25%),
+    0 2px 6px oklch(0 0 0 / 15%);
+}
+
+.glass-card {
+  background: oklch(0.31 0 0 / 46%);
+  backdrop-filter: blur(24px) saturate(1.3);
+  -webkit-backdrop-filter: blur(24px) saturate(1.3);
+  border: 1px solid oklch(1 0 0 / 10%);
+  border-radius: var(--radius, 1rem);
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 15%),
+    0 12px 32px oklch(0 0 0 / 30%),
+    0 4px 12px oklch(0 0 0 / 20%);
+}
+
+.glass-popover {
+  background: oklch(0.25 0 0 / 88%);
+  backdrop-filter: blur(28px) saturate(1.4);
+  -webkit-backdrop-filter: blur(28px) saturate(1.4);
+  border: 1px solid oklch(1 0 0 / 12%);
+  border-radius: var(--radius, 1rem);
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 18%),
+    0 20px 48px oklch(0 0 0 / 40%),
+    0 8px 20px oklch(0 0 0 / 25%);
+}
+
+/* Thicker pane — .88 opacity for featured surfaces */
+.glass-thick {
+  background: oklch(0.22 0 0 / 88%);
+  backdrop-filter: blur(16px) saturate(1.1);
+  -webkit-backdrop-filter: blur(16px) saturate(1.1);
+  border: 1px solid oklch(1 0 0 / 10%);
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 14%),
+    0 16px 40px oklch(0 0 0 / 35%);
+}
+
+/* ── Apply to Wiyana surfaces (dark mode) ────────────────────────── */
+
+.dark .glass-panel,
+.dark .glass-card,
+.dark .glass-popover {
+  color: oklch(0.985 0 0);
+}
+
+/* Course cards get the glass-card treatment */
+.dark [data-glass="card"] {
+  background: oklch(0.31 0 0 / 46%);
+  backdrop-filter: blur(24px) saturate(1.3);
+  -webkit-backdrop-filter: blur(24px) saturate(1.3);
+  border: 1px solid oklch(1 0 0 / 10%);
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 15%),
+    0 12px 32px oklch(0 0 0 / 30%);
+}
+
+/* Banner gets the thick glass treatment */
+.dark [data-glass="banner"] {
+  background: oklch(0.22 0 0 / 88%);
+  backdrop-filter: blur(16px) saturate(1.1);
+  -webkit-backdrop-filter: blur(16px) saturate(1.1);
+  border: 1px solid oklch(1 0 0 / 10%);
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 14%),
+    0 16px 40px oklch(0 0 0 / 35%);
+}
+
+/* Light mode: same panes in daylight */
+.glass-panel:not(.dark *),
+.glass-card:not(.dark *) {
+  background: oklch(0.98 0.004 265 / 60%);
+  border-color: oklch(0.3 0.02 265 / 13%);
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 60%),
+    0 8px 24px oklch(0.3 0.02 265 / 12%);
+}
