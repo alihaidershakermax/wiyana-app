@@ -136,7 +136,8 @@ onUnmounted(() => {
 
     <!-- Animated Moving Banner Card -->
     <div
-      class="relative w-full rounded-3xl overflow-hidden bg-[#141414] text-white shadow-xl shadow-orange-500/10 cursor-pointer group transition-all duration-300 border border-[#E5E7EB] dark:border-[#27272A]"
+      data-glass="banner"
+      class="glass-thick relative w-full rounded-3xl overflow-hidden text-white cursor-pointer group transition-all duration-300"
       @touchstart="handleTouchStart"
       @touchend="handleTouchEnd"
       @click="emit('selectCourse', currentCourse.id)"
