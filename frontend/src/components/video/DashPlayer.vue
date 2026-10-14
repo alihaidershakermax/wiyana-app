@@ -13,27 +13,43 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from "vue";
+import { useUserStore } from "@/stores/useUserStore";
 
 const props = defineProps<{
-  src: string; // URL to manifest.mpd on R2 (no DRM)
+  src: string; // URL to manifest.mpd on R2 (ClearKey encrypted)
 }>();
 
 const videoRef = ref<HTMLVideoElement | null>(null);
 const error = ref("");
 let player: any = null;
 
+const userStore = useUserStore();
+
 async function initPlayer() {
   if (!videoRef.value || !props.src) return;
   error.value = "";
   try {
-    // dash.js reference player (like reference.dashif.org) — no DRM
     const dashjs = await import("dashjs");
     player = dashjs.MediaPlayer().create();
+
+    // ClearKey DRM: protection data MUST be set BEFORE initialize
+    const token = userStore.token;
+    player.setProtectionData({
+      "org.w3.clearkey": {
+        serverURL: `${import.meta.env.VITE_API_URL || "/api/v1"}/drm/license`,
+        httpRequestHeaders: token ? { Authorization: `Bearer ${token}` } : {},
+      },
+    });
+
     player.initialize(videoRef.value, props.src, false);
 
     player.on(dashjs.MediaPlayer.events.ERROR, (e: any) => {
       console.error("[DASH]", e);
-      error.value = "تعذر تشغيل الفيديو";
+      if (e.error?.code === 25) {
+        error.value = "تعذر فك تشفير الفيديو — تأكد من تسجيل الدخول";
+      } else {
+        error.value = "تعذر تشغيل الفيديو";
+      }
     });
   } catch (e: any) {
     console.error("[DASH] init failed", e);
