@@ -137,6 +137,7 @@ function mapLesson(raw: any, video: LessonVideo | null): Lesson {
     createdAt: raw.created_at || new Date().toISOString(),
     video: resolvedVideo,
     attachments: resolveAttachments(raw.attachments || []),
+    file_path: raw.file_path || undefined,
   };
 }
 
