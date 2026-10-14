@@ -19,20 +19,9 @@ async function load() {
     const sRes = await apiClient.get(`/subjects/${subjectId.value}`);
     subject.value = sRes.data?.data || sRes.data;
 
-    // Get courses in this subject
-    const cRes = await apiClient.get(`/subjects/${subjectId.value}/courses`);
-    const courses = cRes.data?.data || cRes.data || [];
-
-    // Get lessons for each course
-    const allLessons: any[] = [];
-    for (const c of courses) {
-      try {
-        const lRes = await apiClient.get(`/courses/${c.id}/lessons`);
-        const ls = lRes.data?.data || lRes.data || [];
-        allLessons.push(...ls.map((l: any) => ({ ...l, courseTitle: c.title })));
-      } catch {}
-    }
-    lessons.value = allLessons;
+    // Get all lessons in this subject (public endpoint)
+    const lRes = await apiClient.get(`/subjects/${subjectId.value}/lessons`);
+    lessons.value = lRes.data?.data || [];
   } catch (e) {
     console.error(e);
   } finally {
@@ -92,7 +81,7 @@ onMounted(load);
           <!-- Info like YouTube -->
           <div class="flex flex-col gap-1 py-1 min-w-0">
             <h3 class="text-sm font-bold leading-snug line-clamp-2">{{ lesson.title }}</h3>
-            <span class="text-xs opacity-60">{{ lesson.courseTitle }}</span>
+            <span class="text-xs opacity-60">{{ lesson.course_title }}</span>
             <span v-if="lesson.description" class="text-xs opacity-50 line-clamp-1">{{ lesson.description }}</span>
           </div>
         </div>
