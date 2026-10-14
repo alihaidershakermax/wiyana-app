@@ -16,7 +16,6 @@ const { data: unreadCount } = useQuery({
 
 const navItems = computed(() => [
   { name: "الرئيسية", path: "/", icon: Home, hasBadge: false },
-  { name: "المساقات", path: "/courses", icon: BookOpen, hasBadge: false },
   { name: "الإشعارات", path: "/notifications", icon: Bell, hasBadge: Boolean(unreadCount.value && unreadCount.value > 0) },
   { name: "حسابي", path: "/profile", icon: User, hasBadge: false },
 ]);
