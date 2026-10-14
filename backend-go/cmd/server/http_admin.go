@@ -56,7 +56,7 @@ func (s *server) adminPanelRoute(w http.ResponseWriter, r *http.Request) bool {
 			for _, c := range courses {
 				latest = append(latest, map[string]any{
 					"id": c.ID, "title": c.Title, "description": c.Description,
-					"thumbnail_url": c.ThumbnailURL, "subject_name": c.SubjectName,
+					"thumbnail_url": c.ThumbnailURL, "subject_name": c.SubjectName, "subject_id": c.SubjectID,
 					"lessons_count": c.LessonsCount, "created_at": c.CreatedAt,
 				})
 			}
