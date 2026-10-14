@@ -15,7 +15,6 @@ import OfflineState from "@/components/ui/OfflineState.vue";
 import ErrorState from "@/components/ui/ErrorState.vue";
 import { checkAccess } from "@/api/protection";
 import type { AccessStatus } from "@/types/protection";
-
 const route = useRoute();
 const router = useRouter();
 
@@ -68,9 +67,6 @@ function downloadVideo() {
   a.click();
   a.remove();
 }
-const accessStatus = ref<AccessStatus | null>(null);
-const accessChecked = ref(false);
-const accessBanned = computed(() => accessStatus.value?.banned ?? false);
 
 function navigateToLesson(id: string) {
   if (id === lessonId.value) return;
@@ -93,16 +89,6 @@ watch(lessonId, () => {
   showNotes.value = false;
   window.scrollTo({ top: 0 });
 });
-
-onMounted(async () => {
-  try {
-    accessStatus.value = await checkAccess();
-  } catch {
-    accessStatus.value = null;
-  } finally {
-    accessChecked.value = true;
-  }
-});
 </script>
 
 <template>
@@ -124,40 +110,8 @@ onMounted(async () => {
 
     <!-- Player Screen -->
     <template v-else>
-      <!-- Banned: full page block gate -->
-      <div
-        v-if="accessChecked && accessBanned"
-        class="min-h-screen flex flex-col items-center justify-center gap-4 px-6 text-center"
-      >
-        <div class="w-16 h-16 rounded-full bg-red-500/15 flex items-center justify-center">
-          <Lock class="w-8 h-8 text-red-500" />
-        </div>
-        <div class="flex flex-col gap-1.5 max-w-md">
-          <h3 class="text-base sm:text-lg font-black">حسابك محظور مؤقتاً</h3>
-          <p class="text-xs sm:text-sm font-medium opacity-70 leading-relaxed">
-            تم تجاوز الحد المسموح من محاولات التقاط المحتوى. يمكنك إعادة التحقق لاحقاً بعد انتهاء مدة الحظر.
-          </p>
-        </div>
-        <div class="flex flex-col gap-2 w-full max-w-xs">
-          <button
-            type="button"
-            class="px-5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 active:scale-95 transition-all text-white text-sm font-black cursor-pointer"
-            @click="router.go(0)"
-          >
-            إعادة التحقق من الوصول
-          </button>
-          <button
-            type="button"
-            class="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 transition-all text-sm font-black cursor-pointer"
-            @click="closeApp"
-          >
-            إغلاق
-          </button>
-        </div>
-      </div>
-
       <!-- Normal content -->
-      <template v-else>
+      <template>
       <!-- Offline Connection Warning -->
       <OfflineState @refresh="refetch()" />
 
