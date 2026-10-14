@@ -36,6 +36,7 @@ export interface Lesson {
   attachments: LessonAttachment[];
   youtube_video_id?: string | null;
   youtube_url?: string | null;
+  file_path?: string | null;
 }
 
 export interface LessonInfoCourse {
