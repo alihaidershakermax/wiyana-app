@@ -6,6 +6,7 @@ import { useLessonPlayer } from "@/composables/useLessonPlayer";
 import LessonHeader from "@/components/lesson/LessonHeader.vue";
 import VideoPlayer from "@/components/lesson/VideoPlayer.vue";
 import ProtectedVideoPlayer from "@/components/lesson/ProtectedVideoPlayer.vue";
+import DashPlayer from "@/components/video/DashPlayer.vue";
 import LessonInfo from "@/components/lesson/LessonInfo.vue";
 import CourseProgress from "@/components/lesson/CourseProgress.vue";
 import LessonNavigation from "@/components/lesson/LessonNavigation.vue";
@@ -33,6 +34,13 @@ const isPlainVideo = computed(() => {
   return fp.endsWith(".mp4") || fp.endsWith(".webm") || fp.endsWith(".mov");
 });
 const plainUrl = computed(() => currentLesson.value?.file_path ?? "");
+
+// DASH video (mpd — dash.js reference player, no DRM)
+const isDashVideo = computed(() => {
+  const fp = currentLesson.value?.file_path ?? "";
+  return fp.endsWith(".mpd");
+});
+const dashUrl = computed(() => currentLesson.value?.file_path ?? "");
 
 // YouTube-style UI state
 const descExpanded = ref(false);
@@ -164,9 +172,16 @@ onMounted(async () => {
       <!-- Video Player -->
       <div class="w-full bg-black sticky top-0 z-20">
         <div class="w-full aspect-video">
+          <!-- DASH player (dash.js reference, no DRM) -->
+          <DashPlayer
+            v-if="isDashVideo"
+            :key="currentLesson.id"
+            :src="dashUrl"
+          />
+
           <!-- Plain video (no protection, no watermark) -->
           <video
-            v-if="isPlainVideo"
+            v-else-if="isPlainVideo"
             :key="currentLesson.id"
             :src="plainUrl"
             controls
