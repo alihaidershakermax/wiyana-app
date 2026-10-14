@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/alihaidershakermax/wena-app-platfrom/backend-go/internal/auth"
+	"github.com/alihaidershakermax/wena-app-platfrom/backend-go/internal/db"
 )
 
 func (s *server) authCompatRoute(w http.ResponseWriter, r *http.Request) bool {
@@ -171,7 +172,17 @@ func (s *server) compatRoute(w http.ResponseWriter, r *http.Request) bool {
 			writeJSON(w, http.StatusOK, map[string]any{"success": true, "data": []any{}})
 			return true
 		case path == "home/dashboard":
-			writeJSON(w, http.StatusOK, map[string]any{"user": homeUser(identity), "announcement": nil, "continueLearningCourses": []any{}, "recommendedCourses": []any{}, "latestCourses": []any{}, "popularCourses": []any{}})
+			// Return real latest published courses
+			courses, _, _ := s.adb.ListCourses(db.CourseFilter{Status: "published", Limit: 10})
+			latest := make([]any, 0)
+			for _, c := range courses {
+				latest = append(latest, map[string]any{
+					"id": c.ID, "title": c.Title, "description": c.Description,
+					"thumbnail_url": c.ThumbnailURL, "subject_name": c.SubjectName,
+					"lessons_count": c.LessonsCount, "created_at": c.CreatedAt,
+				})
+			}
+			writeJSON(w, http.StatusOK, map[string]any{"user": homeUser(identity), "announcement": nil, "continueLearningCourses": []any{}, "recommendedCourses": latest, "latestCourses": latest, "popularCourses": latest})
 			return true
 		case path == "courses/" || path == "courses":
 			writeJSON(w, http.StatusOK, []any{})
