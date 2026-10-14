@@ -39,6 +39,34 @@ func (s *server) adminPanelRoute(w http.ResponseWriter, r *http.Request) bool {
 		return true
 	}
 
+	// --- public content endpoints (no auth — subscriptions removed) --------
+	switch {
+	case (path == "/subjects" || path == "/subjects/") && r.Method == http.MethodGet:
+		if s.adb != nil {
+			subjects, _, _ := s.adb.ListSubjects(db.SubjectFilter{Limit: 50})
+			writeJSON(w, http.StatusOK, map[string]any{"success": true, "data": subjects})
+		} else {
+			writeJSON(w, http.StatusOK, map[string]any{"success": true, "data": []any{}})
+		}
+		return true
+	case path == "/home/dashboard" && r.Method == http.MethodGet:
+		if s.adb != nil {
+			courses, _, _ := s.adb.ListCourses(db.CourseFilter{Status: "published", Limit: 10})
+			latest := make([]any, 0)
+			for _, c := range courses {
+				latest = append(latest, map[string]any{
+					"id": c.ID, "title": c.Title, "description": c.Description,
+					"thumbnail_url": c.ThumbnailURL, "subject_name": c.SubjectName,
+					"lessons_count": c.LessonsCount, "created_at": c.CreatedAt,
+				})
+			}
+			writeJSON(w, http.StatusOK, map[string]any{"user": nil, "announcement": nil, "continueLearningCourses": []any{}, "recommendedCourses": latest, "latestCourses": latest, "popularCourses": latest})
+		} else {
+			writeJSON(w, http.StatusOK, map[string]any{"latestCourses": []any{}})
+		}
+		return true
+	}
+
 	// --- everything below requires an admin/owner/teacher identity ------
 	identity, isAdmin := s.admin(w, r)
 	if !isAdmin {
