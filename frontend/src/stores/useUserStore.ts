@@ -116,6 +116,19 @@ export const useUserStore = defineStore("user", () => {
         if (urlJwt) {
           setAuthToken(urlJwt);
           token.value = urlJwt;
+          // Decode JWT payload to get user info (name, etc.)
+          try {
+            const payload = JSON.parse(atob(urlJwt.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+            if (payload.name) {
+              customProfile.value.name = payload.name;
+              localStorage.setItem("wy_user_name", payload.name);
+            }
+            if (payload.telegram_id) {
+              currentUser.value = { ...currentUser.value, telegramId: payload.telegram_id } as any;
+            }
+          } catch {
+            // ignore decode errors
+          }
           urlParams.delete("jwt");
           urlParams.delete("auth");
           const newUrl = window.location.pathname + (urlParams.toString() ? "?" + urlParams.toString() : "");
