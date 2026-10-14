@@ -29,7 +29,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: "/courses/:id",
     name: "course-detail",
-    component: () => import("@/views/CourseDetailView.vue"),
+    redirect: "/",
   },
   {
     path: "/subjects/:id",
