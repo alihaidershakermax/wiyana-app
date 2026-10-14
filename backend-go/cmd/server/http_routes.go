@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/alihaidershakermax/wena-app-platfrom/backend-go/internal/auth"
 	"github.com/alihaidershakermax/wena-app-platfrom/backend-go/internal/cache"
 )
 
@@ -32,6 +33,26 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		copy(entries, loginDebugLog.entries)
 		loginDebugLog.Unlock()
 		writeJSON(w, http.StatusOK, map[string]any{"entries": entries})
+		return
+	}
+	// TEMP DEBUG: generate one-time token (owner only)
+	if r.URL.Path == "/api/v1/auth/debug-token" && r.Method == http.MethodPost {
+		ident, code := s.identity(w, r)
+		if code != 0 {
+			return
+		}
+		if ident.Role != "owner" && ident.Role != "admin" {
+			writeError(w, http.StatusForbidden, "غير مصرح")
+			return
+		}
+		var body struct {
+			TelegramID int64 `json:"telegram_id"`
+		}
+		if !readJSON(w, r, &body) {
+			return
+		}
+		token := auth.CreateOneTimeToken(body.TelegramID)
+		writeJSON(w, http.StatusOK, map[string]any{"token": token})
 		return
 	}
 	if strings.HasPrefix(r.URL.Path, "/api/v1/auth/") && s.authCompatRoute(w, r) {
