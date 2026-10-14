@@ -54,7 +54,12 @@ const allCoursesCombined = computed<Course[]>(() => {
 });
 
 function handleCourseClick(courseId: string) {
-  if (courseId) {
+  // Banner click: go to the subject instead of course (courses removed from UI)
+  const course = data.value?.latestCourses?.find((c: any) => c.id === courseId);
+  const subjectId = (course as any)?.subject_id;
+  if (subjectId) {
+    router.push({ name: "subject-detail", params: { id: subjectId } });
+  } else if (courseId) {
     router.push(`/courses/${courseId}`);
   }
 }
