@@ -96,7 +96,24 @@ func (s *server) loginViaToken(w http.ResponseWriter, r *http.Request) {
 	if !readJSON(w, r, &body) {
 		return
 	}
+	// TEMP DEBUG: log token attempt metadata
+	tokenPrefix := body.Token
+	if len(tokenPrefix) > 12 {
+		tokenPrefix = tokenPrefix[:12] + "..."
+	}
 	telegramID, ok := auth.ConsumeOneTimeToken(body.Token)
+	loginDebugLog.Lock()
+	entry := map[string]any{
+		"time":        time.Now().UTC().Format("2006-01-02 15:04:05"),
+		"type":        "token",
+		"tokenPrefix": tokenPrefix,
+		"ok":          ok,
+	}
+	loginDebugLog.entries = append(loginDebugLog.entries, entry)
+	if len(loginDebugLog.entries) > 50 {
+		loginDebugLog.entries = loginDebugLog.entries[len(loginDebugLog.entries)-50:]
+	}
+	loginDebugLog.Unlock()
 	if !ok {
 		writeError(w, http.StatusUnauthorized, "رمز الدخول غير صالح أو منتهي")
 		return
