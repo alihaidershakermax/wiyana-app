@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./solid-glass-wiyana.css";
 
 /* Class-based dark mode: `dark:` utilities activate when `.dark` is on <html> */
 @custom-variant dark (&:where(.dark, .dark *));
