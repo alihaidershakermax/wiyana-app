@@ -98,25 +98,31 @@ export const useUserStore = defineStore("user", () => {
           }
         } else {
           // Fallback: one-time token from URL (?auth=...) when initData unavailable
-          const urlParams = new URLSearchParams(window.location.search);
-          const authToken = urlParams.get("auth");
-          if (authToken) {
-            try {
-              const authRes = await loginWithToken(authToken);
-              if (authRes?.access_token) {
-                setAuthToken(authRes.access_token);
-                token.value = authRes.access_token;
-              }
-              if (authRes?.user) {
-                currentUser.value = authRes.user;
-              }
-              // Clean the token from URL
-              urlParams.delete("auth");
-              const newUrl = window.location.pathname + (urlParams.toString() ? "?" + urlParams.toString() : "");
-              window.history.replaceState({}, "", newUrl);
-            } catch {
-              // token login failed, continue without auth
+          // NOTE: also checked outside Telegram block below for direct links
+        }
+      }
+
+      // Fallback: one-time token from URL (?auth=...) — works with or without Telegram
+      // (for direct login links opened in any browser)
+      if (!token.value) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const authToken = urlParams.get("auth");
+        if (authToken) {
+          try {
+            const authRes = await loginWithToken(authToken);
+            if (authRes?.access_token) {
+              setAuthToken(authRes.access_token);
+              token.value = authRes.access_token;
             }
+            if (authRes?.user) {
+              currentUser.value = authRes.user;
+            }
+            // Clean the token from URL
+            urlParams.delete("auth");
+            const newUrl = window.location.pathname + (urlParams.toString() ? "?" + urlParams.toString() : "");
+            window.history.replaceState({}, "", newUrl);
+          } catch {
+            // token login failed, continue without auth
           }
         }
       }
