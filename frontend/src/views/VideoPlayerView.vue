@@ -6,6 +6,7 @@ import { useLessonPlayer } from "@/composables/useLessonPlayer";
 import LessonHeader from "@/components/lesson/LessonHeader.vue";
 import VideoPlayer from "@/components/lesson/VideoPlayer.vue";
 import ProtectedVideoPlayer from "@/components/lesson/ProtectedVideoPlayer.vue";
+import DashPlayer from "@/components/video/DashPlayer.vue";
 import LessonInfo from "@/components/lesson/LessonInfo.vue";
 import CourseProgress from "@/components/lesson/CourseProgress.vue";
 import LessonNavigation from "@/components/lesson/LessonNavigation.vue";
@@ -33,6 +34,12 @@ const course = computed(() => bundle.value?.course ?? null);
 const lessons = computed(() => bundle.value?.lessons ?? []);
 const isEnrolled = computed(() => bundle.value?.isEnrolled ?? false);
 const isLocked = computed(() => currentLesson.value?.isLocked ?? false);
+
+// DASH encrypted video detection (file_path ending in .mpd)
+const isDashVideo = computed(
+  () => !!currentLesson.value?.file_path?.endsWith(".mpd")
+);
+const dashUrl = computed(() => currentLesson.value?.file_path ?? "");
 
 // Content-protection gate: file/HLS videos use the protected player; YouTube uses standard player
 const isProtectedVideo = computed(
@@ -163,6 +170,13 @@ onMounted(async () => {
               عرض المساق والاشتراك
             </button>
           </div>
+
+          <!-- DASH encrypted player -->
+          <DashPlayer
+            v-if="isDashVideo"
+            :key="currentLesson.id"
+            :src="dashUrl"
+          />
 
           <!-- Protected player for file/HLS videos -->
           <ProtectedVideoPlayer
