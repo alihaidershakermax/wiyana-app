@@ -26,6 +26,36 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		s.loginViaToken(w, r)
 		return
 	}
+	// DASH ClearKey license server
+	if r.URL.Path == "/api/v1/drm/license" && r.Method == http.MethodPost {
+		s.handleDashLicense(w, r)
+		return
+	}
+	// DASH: register encryption key (owner/admin only)
+	if r.URL.Path == "/api/v1/drm/register-key" && r.Method == http.MethodPost {
+		ident, code := s.identity(w, r)
+		if code != 0 {
+			return
+		}
+		if ident.Role != "owner" && ident.Role != "admin" {
+			writeError(w, http.StatusForbidden, "غير مصرح")
+			return
+		}
+		var body struct {
+			KeyID string `json:"key_id"`
+			Key   string `json:"key"`
+		}
+		if !readJSON(w, r, &body) {
+			return
+		}
+		if len(body.KeyID) != 32 || len(body.Key) != 32 {
+			writeError(w, http.StatusBadRequest, "key_id and key must be 32 hex chars")
+			return
+		}
+		setDashKey(body.KeyID, body.Key)
+		writeJSON(w, http.StatusOK, map[string]any{"ok": true})
+		return
+	}
 	// TEMP DEBUG: view recent login attempt metadata
 	if r.URL.Path == "/api/v1/auth/debug-log" && r.Method == http.MethodGet {
 		loginDebugLog.Lock()
