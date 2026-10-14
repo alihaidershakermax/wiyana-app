@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { Lock } from "@lucide/vue";
+import { Lock, BookOpen } from "@lucide/vue";
 import { useLessonPlayer } from "@/composables/useLessonPlayer";
 import LessonHeader from "@/components/lesson/LessonHeader.vue";
 import VideoPlayer from "@/components/lesson/VideoPlayer.vue";
@@ -33,7 +33,7 @@ const currentLesson = computed(() => bundle.value?.lesson ?? null);
 const course = computed(() => bundle.value?.course ?? null);
 const lessons = computed(() => bundle.value?.lessons ?? []);
 const isEnrolled = computed(() => bundle.value?.isEnrolled ?? false);
-const isLocked = computed(() => currentLesson.value?.isLocked ?? false);
+const isLocked = computed(() => false); // Subscriptions removed — all content free
 
 // DASH encrypted video detection (file_path ending in .mpd)
 const isDashVideo = computed(
@@ -145,32 +145,10 @@ onMounted(async () => {
         :course-id="course?.id"
       />
 
-      <!-- Video Player Container with Clean Fit -->
-      <div class="w-full max-w-7xl mx-auto sm:px-4 sm:pt-3">
-        <div class="w-full aspect-video bg-slate-950 sm:rounded-2xl overflow-hidden shadow-2xl border border-white/5 relative">
-          <!-- Locked lesson: paywall before the player -->
-          <div
-            v-if="isLocked"
-            class="relative w-full h-full bg-slate-950 flex flex-col items-center justify-center gap-4 px-6 text-center"
-          >
-            <div class="w-16 h-16 rounded-full bg-orange-500/15 flex items-center justify-center">
-              <Lock class="w-7 h-7 text-orange-500" />
-            </div>
-            <div class="flex flex-col gap-1.5 max-w-md">
-              <h3 class="text-base sm:text-lg font-black text-white">هذه المحاضرة مقفلة</h3>
-              <p class="text-xs sm:text-sm font-medium text-white/60 leading-relaxed">
-                للوصول إلى هذه المحاضرة وجميع محاضرات المساق، يرجى تفعيل اشتراكك أولاً.
-              </p>
-            </div>
-            <button
-              @click="goToCourse"
-              type="button"
-              class="px-5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 active:scale-95 transition-all text-white text-sm font-black cursor-pointer shadow-lg shadow-orange-500/25"
-            >
-              عرض المساق والاشتراك
-            </button>
-          </div>
-
+      <!-- YouTube-style layout -->
+      <!-- Video Player - full width on top like YouTube -->
+      <div class="w-full bg-black">
+        <div class="w-full max-w-7xl mx-auto aspect-video relative">
           <!-- DASH encrypted player -->
           <DashPlayer
             v-if="isDashVideo"
@@ -198,40 +176,51 @@ onMounted(async () => {
         </div>
       </div>
 
-      <!-- Main Content Area -->
-      <main class="flex-1 max-w-7xl mx-auto px-4 py-5 w-full flex flex-col gap-5">
-        <!-- Lesson Info -->
-        <LessonInfo v-if="course" :lesson="currentLesson" :course="course" />
+      <!-- YouTube-style info below video -->
+      <main class="flex-1 w-full max-w-7xl mx-auto px-4 py-4 flex flex-col gap-4">
+        <!-- Title like YouTube -->
+        <h1 class="text-lg sm:text-xl font-bold leading-snug">{{ currentLesson.title }}</h1>
 
-        <!-- Course Progress -->
-        <CourseProgress :lessons="lessons" />
+        <!-- Meta row: subject + views like YouTube channel row -->
+        <div class="flex items-center justify-between flex-wrap gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-orange-500/15 flex items-center justify-center overflow-hidden">
+              <img v-if="course?.thumbnailUrl" :src="course.thumbnailUrl" class="w-full h-full object-cover" alt="" />
+              <BookOpen v-else class="w-5 h-5 text-orange-500" />
+            </div>
+            <div class="flex flex-col">
+              <span class="text-sm font-bold">{{ course?.subjectName || course?.title }}</span>
+              <span class="text-xs opacity-60">{{ lessons.length }} محاضرة</span>
+            </div>
+          </div>
+        </div>
 
-        <!-- Previous / Next Navigation -->
-        <LessonNavigation
-          :lessons="lessons"
-          :current-lesson-id="currentLesson.id"
-          @navigate="navigateToLesson"
-        />
+        <!-- Description box like YouTube -->
+        <div v-if="currentLesson.description" class="rounded-xl bg-black/5 dark:bg-white/10 p-3 text-sm leading-relaxed">
+          {{ currentLesson.description }}
+        </div>
 
-        <!-- Tabs -->
-        <LessonTabs
-          v-model="activeTab"
-          :lessons-count="lessons.length"
-          :attachments-count="currentLesson.attachments.length"
-        />
-
-        <!-- Tab Content -->
-        <Transition name="tab-fade" mode="out-in">
+        <!-- Up next / related lessons like YouTube -->
+        <div class="flex flex-col gap-2 mt-2">
+          <h2 class="text-base font-bold">محاضرات أخرى</h2>
           <LessonsTab
-            v-if="activeTab === 'lessons'"
             :key="`lessons-${currentLesson.id}`"
             :lessons="lessons"
             :current-lesson-id="currentLesson.id"
-            :is-enrolled="isEnrolled"
+            :is-enrolled="true"
             @select="navigateToLesson"
           />
+        </div>
+
+        <!-- Attachments & Notes tabs (collapsible) -->
+        <LessonTabs
+          v-model="activeTab"
+          :lessons-count="0"
+          :attachments-count="currentLesson.attachments.length"
+        />
+        <Transition name="tab-fade" mode="out-in">
           <AttachmentsTab
-            v-else-if="activeTab === 'attachments'"
+            v-if="activeTab === 'attachments'"
             :key="`attachments-${currentLesson.id}`"
             :attachments="currentLesson.attachments"
           />
