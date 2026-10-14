@@ -106,23 +106,34 @@ export const useUserStore = defineStore("user", () => {
       // (for direct login links opened in any browser)
       if (!token.value) {
         const urlParams = new URLSearchParams(window.location.search);
-        const authToken = urlParams.get("auth");
-        if (authToken) {
-          try {
-            const authRes = await loginWithToken(authToken);
-            if (authRes?.access_token) {
-              setAuthToken(authRes.access_token);
-              token.value = authRes.access_token;
+        // Direct JWT in URL (most robust - no backend exchange needed)
+        const urlJwt = urlParams.get("jwt");
+        if (urlJwt) {
+          setAuthToken(urlJwt);
+          token.value = urlJwt;
+          urlParams.delete("jwt");
+          urlParams.delete("auth");
+          const newUrl = window.location.pathname + (urlParams.toString() ? "?" + urlParams.toString() : "");
+          window.history.replaceState({}, "", newUrl);
+        } else {
+          const authToken = urlParams.get("auth");
+          if (authToken) {
+            try {
+              const authRes = await loginWithToken(authToken);
+              if (authRes?.access_token) {
+                setAuthToken(authRes.access_token);
+                token.value = authRes.access_token;
+              }
+              if (authRes?.user) {
+                currentUser.value = authRes.user;
+              }
+              // Clean the token from URL
+              urlParams.delete("auth");
+              const newUrl = window.location.pathname + (urlParams.toString() ? "?" + urlParams.toString() : "");
+              window.history.replaceState({}, "", newUrl);
+            } catch {
+              // token login failed, continue without auth
             }
-            if (authRes?.user) {
-              currentUser.value = authRes.user;
-            }
-            // Clean the token from URL
-            urlParams.delete("auth");
-            const newUrl = window.location.pathname + (urlParams.toString() ? "?" + urlParams.toString() : "");
-            window.history.replaceState({}, "", newUrl);
-          } catch {
-            // token login failed, continue without auth
           }
         }
       }
