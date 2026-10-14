@@ -67,6 +67,28 @@ func (s *server) adminPanelRoute(w http.ResponseWriter, r *http.Request) bool {
 		return true
 	}
 
+	// Public: lessons by subject (flattened from its courses)
+	if strings.HasPrefix(path, "/subjects/") && strings.HasSuffix(path, "/lessons") && r.Method == http.MethodGet {
+		parts := strings.Split(strings.Trim(path, "/"), "/")
+		if len(parts) == 3 && s.adb != nil {
+			subjectID := parts[1]
+			courses, _, _ := s.adb.ListCourses(db.CourseFilter{SubjectID: subjectID, Limit: 50})
+			allLessons := make([]any, 0)
+			for _, c := range courses {
+				lessons, _ := s.adb.ListLessonsByCourse(c.ID)
+				for _, l := range lessons {
+					allLessons = append(allLessons, map[string]any{
+						"id": l.ID, "title": l.Title, "description": l.Description,
+						"thumbnail": l.Thumbnail, "file_path": l.FilePath,
+						"duration": l.Duration, "course_title": c.Title,
+					})
+				}
+			}
+			writeJSON(w, http.StatusOK, map[string]any{"success": true, "data": allLessons})
+			return true
+		}
+	}
+
 	// --- everything below requires an admin/owner/teacher identity ------
 	identity, isAdmin := s.admin(w, r)
 	if !isAdmin {
