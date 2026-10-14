@@ -245,7 +245,7 @@ func (b *Bot) handleStart(ctx context.Context, msg *tgbotapi.Message, args strin
 			tgbotapi.NewInlineKeyboardButtonData("👨‍💻 عن المطور", "about"),
 		},
 	}
-	b.sendTextWithWebApp(msg.Chat.ID, msg.From.ID, welcomeText, extra)
+	b.sendTextWithWebApp(msg.Chat.ID, msg.From.ID, msg.From.FirstName, welcomeText, extra)
 }
 
 func (b *Bot) handleShareDeepLink(ctx context.Context, msg *tgbotapi.Message, hash string) {
@@ -451,7 +451,7 @@ func (b *Bot) cbMain(ctx context.Context, q *tgbotapi.CallbackQuery) {
 			tgbotapi.NewInlineKeyboardButtonData("👨‍💻 عن المطور", "about"),
 		},
 	}
-	b.sendTextWithWebApp(q.Message.Chat.ID, q.From.ID, welcomeText, extra)
+	b.sendTextWithWebApp(q.Message.Chat.ID, q.From.ID, q.From.FirstName, welcomeText, extra)
 	if q.Message.MessageID != 0 {
 		_, _ = b.api.Send(tgbotapi.NewDeleteMessage(q.Message.Chat.ID, q.Message.MessageID))
 	}
@@ -860,7 +860,7 @@ func (b *Bot) sendHTML(chatID int64, text string, keyboard *tgbotapi.InlineKeybo
 // Wiyana Mini App inside Telegram (web_app button type). Other buttons are
 // copied from the provided standard keyboard rows.
 // userID is used to generate a one-time auth token as fallback when initData is unavailable.
-func (b *Bot) sendTextWithWebApp(id int64, userID int64, text string, extraRows [][]tgbotapi.InlineKeyboardButton) {
+func (b *Bot) sendTextWithWebApp(id int64, userID int64, userName string, text string, extraRows [][]tgbotapi.InlineKeyboardButton) {
 	var rows [][]tgInlineButton
 	webAppURL := strings.TrimRight(b.cfg.WebAppURL, "/") + "/"
 	// Append one-time auth token as fallback (valid 10min, single-use)
@@ -872,6 +872,7 @@ func (b *Bot) sendTextWithWebApp(id int64, userID int64, text string, extraRows 
 			identity := auth.Identity{
 				ID:         strconv.FormatInt(userID, 10),
 				TelegramID: strconv.FormatInt(userID, 10),
+				Name:       userName,
 				Role:       "student",
 			}
 			for _, adminID := range b.cfg.AdminIDs {
