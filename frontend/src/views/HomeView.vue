@@ -1,17 +1,16 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useHomeData } from "@/composables/useHomeData";
 import { useHomeStore } from "@/stores/useHomeStore";
 import { Course } from "@/types/course";
+import { apiClient } from "@/api/client";
 
 // Components
 import OfflineState from "@/components/ui/OfflineState.vue";
 import HomeHeader from "@/components/home/HomeHeader.vue";
 import LatestPublishBanner from "@/components/home/LatestPublishBanner.vue";
-import RecommendedCourses from "@/components/home/RecommendedCourses.vue";
-import LatestCourses from "@/components/home/LatestCourses.vue";
-import PopularCourses from "@/components/home/PopularCourses.vue";
+import SubjectsGrid from "@/components/home/SubjectsGrid.vue";
 import HomeSkeleton from "@/components/ui/HomeSkeleton.vue";
 import ErrorState from "@/components/ui/ErrorState.vue";
 import SearchModal from "@/components/home/SearchModal.vue";
@@ -20,6 +19,20 @@ import SearchModal from "@/components/home/SearchModal.vue";
 const { data, isLoading, isError, refetch } = useHomeData();
 const homeStore = useHomeStore();
 const router = useRouter();
+
+// Subjects (المواد الدراسية)
+const subjects = ref<any[]>([]);
+onMounted(async () => {
+  try {
+    const res = await apiClient.get("/subjects/");
+    const d = res.data;
+    subjects.value = Array.isArray(d) ? d : d?.data || [];
+  } catch {}
+});
+
+function handleSubjectClick(subjectId: string) {
+  if (subjectId) router.push({ name: "subject-detail", params: { id: subjectId } });
+}
 
 // Find the very latest published item as fallback
 const latestPublishedItem = computed<Course | null>(() => {
@@ -90,25 +103,10 @@ function handleSearchClick() {
           @select-course="handleCourseClick"
         />
 
-        <!-- 2. Recommended Courses Grid -->
-        <RecommendedCourses
-          :courses="data.recommendedCourses"
-          @select-course="handleCourseClick"
-          @view-all="handleViewAllCourses"
-        />
-
-        <!-- 3. Latest Courses Section -->
-        <LatestCourses
-          :courses="data.latestCourses"
-          @select-course="handleCourseClick"
-          @view-all="handleViewAllCourses"
-        />
-
-        <!-- 4. Popular Courses Section -->
-        <PopularCourses
-          :courses="data.popularCourses"
-          @select-course="handleCourseClick"
-          @view-all="handleViewAllCourses"
+        <!-- 2. Subjects Grid (المواد الدراسية مباشرة) -->
+        <SubjectsGrid
+          :subjects="subjects"
+          @select-subject="handleSubjectClick"
         />
       </div>
     </main>
