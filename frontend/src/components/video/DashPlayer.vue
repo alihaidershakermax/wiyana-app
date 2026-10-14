@@ -26,9 +26,8 @@ async function initPlayer() {
   try {
     const dashjs = await import("dashjs");
     player = dashjs.MediaPlayer().create();
-    player.initialize(videoRef.value, props.src, true);
 
-    // ClearKey protection: license server returns keys for authenticated users
+    // ClearKey protection: MUST be set BEFORE initialize
     const token = userStore.token;
     player.setProtectionData({
       "org.w3.clearkey": {
@@ -36,6 +35,8 @@ async function initPlayer() {
         httpRequestHeaders: token ? { Authorization: `Bearer ${token}` } : {},
       },
     });
+
+    player.initialize(videoRef.value, props.src, true);
 
     player.on(dashjs.MediaPlayer.events.ERROR, (e: any) => {
       console.error("[DASH]", e);
