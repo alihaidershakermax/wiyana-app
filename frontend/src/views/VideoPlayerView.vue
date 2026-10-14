@@ -35,11 +35,16 @@ const lessons = computed(() => bundle.value?.lessons ?? []);
 const isEnrolled = computed(() => bundle.value?.isEnrolled ?? false);
 const isLocked = computed(() => false); // Subscriptions removed — all content free
 
-// DASH encrypted video detection (file_path ending in .mpd)
-const isDashVideo = computed(
-  () => !!currentLesson.value?.file_path?.endsWith(".mpd")
-);
-const dashUrl = computed(() => currentLesson.value?.file_path ?? "");
+// DASH encrypted video detection (file_path ending in .mpd) — REMOVED, all videos now plain
+const isDashVideo = computed(() => false);
+const dashUrl = computed(() => "");
+
+// Plain video detection (mp4, webm — no protection)
+const isPlainVideo = computed(() => {
+  const fp = currentLesson.value?.file_path ?? "";
+  return fp.endsWith(".mp4") || fp.endsWith(".webm") || fp.endsWith(".mov");
+});
+const plainUrl = computed(() => currentLesson.value?.file_path ?? "");
 
 // Content-protection gate: file/HLS videos use the protected player; YouTube uses standard player
 const isProtectedVideo = computed(
@@ -149,11 +154,14 @@ onMounted(async () => {
       <!-- Video Player - full width on top like YouTube -->
       <div class="w-full bg-black">
         <div class="w-full max-w-7xl mx-auto aspect-video relative">
-          <!-- DASH encrypted player -->
-          <DashPlayer
-            v-if="isDashVideo"
+          <!-- Plain video (no protection) -->
+          <video
+            v-if="isPlainVideo"
             :key="currentLesson.id"
-            :src="dashUrl"
+            :src="plainUrl"
+            controls
+            playsinline
+            class="w-full h-full"
           />
 
           <!-- Protected player for file/HLS videos -->
